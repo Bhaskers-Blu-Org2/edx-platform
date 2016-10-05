@@ -3,12 +3,15 @@ Django storage backends for Open edX.
 """
 
 import pytz
+
+from azure.storage import AccessPolicy
 from datetime import datetime, timedelta
 from django.contrib.staticfiles.storage import StaticFilesStorage, CachedFilesMixin
 from django.core.files.storage import get_storage_class
 from django.utils.lru_cache import lru_cache
 from pipeline.storage import NonPackagingMixin, PipelineCachedStorage, PipelineMixin
 from require.storage import OptimizedFilesMixin
+from storages.backends.azure_storage import AzureStorage
 from storages.backends.s3boto import S3BotoStorage
 
 from openedx.core.djangoapps.theming.storage import ThemeCachedFilesMixin, ThemePipelineMixin, ThemeStorage
@@ -27,10 +30,6 @@ class PipelineForgivingStorage(PipelineCachedStorage):
             # some packages have missing files in their css all the time.
             out = name
         return out
-
-
-from storages.backends.azure_storage import AzureStorage
-from azure.storage.common import AccessPolicy
 
 class ProductionStorage(
         PipelineForgivingStorage,
@@ -111,11 +110,39 @@ class AzureStorageExtended(AzureStorage):
         """
         super(AzureStorage, self).__init__(*args, **kwargs)
         self._connection = None
-        self._service = None
         self.url_expiry_secs = url_expiry_secs
 
         if container:
             self.azure_container = container
+
+    def url(self, name):
+        """
+        Override this method so that we can add SAS authorization tokens
+        """
+
+        sas_token = None
+        if self.url_expiry_secs:
+            now = datetime.utcnow().replace(tzinfo=pytz.utc)
+            expire_at = now + timedelta(seconds=self.url_expiry_secs)
+
+            policy = AccessPolicy()
+            # generate an ISO8601 time string and use split() to remove the sub-second
+            # components as Azure will reject them. Plus add the timezone at the end.
+            policy.expiry = expire_at.isoformat().split('.')[0] + 'Z'
+            policy.permission = 'r'
+
+            sas_token = self.connection.generate_shared_access_signature(
+                self.azure_container,
+                blob_name=name,
+                shared_access_policy=SharedAccessPolicy(access_policy=policy),
+            )
+
+        return self.connection.make_blob_url(
+            container_name=self.azure_container,
+            blob_name=name,
+            protocol=self.azure_protocol,
+            sas_token=sas_token
+        )
 
     def listdir(self, path):
         """
@@ -125,12 +152,15 @@ class AzureStorageExtended(AzureStorage):
         if not path:
             path = None
 
-        blobs = self.list_all(path=path)
-
+        blobs = self.connection.list_blobs(
+            container_name=self.azure_container,
+            prefix=path,
+        )
         results = []
-        for blob_name in blobs:
+        for f in blobs:
+            name = f.name
             if path:
-                blob_name = blob_name.replace(path, '')
-            results.append(blob_name)
+                name = name.replace(path, '')
+            results.append(name)
 
         return ((), results)
