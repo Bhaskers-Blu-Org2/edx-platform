@@ -1,10 +1,13 @@
 """
 Django storage backends for Open edX.
 """
-from django.contrib.staticfiles.storage import StaticFilesStorage
+
+import pytz
+from datetime import datetime, timedelta
+from django.contrib.staticfiles.storage import StaticFilesStorage, CachedFilesMixin
 from django.core.files.storage import get_storage_class
 from django.utils.lru_cache import lru_cache
-from pipeline.storage import NonPackagingMixin, PipelineCachedStorage
+from pipeline.storage import NonPackagingMixin, PipelineCachedStorage, PipelineMixin
 from require.storage import OptimizedFilesMixin
 from storages.backends.s3boto import S3BotoStorage
 
@@ -25,6 +28,9 @@ class PipelineForgivingStorage(PipelineCachedStorage):
             out = name
         return out
 
+
+from storages.backends.azure_storage import AzureStorage
+from azure.storage.common import AccessPolicy
 
 class ProductionStorage(
         PipelineForgivingStorage,
@@ -89,3 +95,42 @@ def get_storage(storage_class=None, **kwargs):
     example.
     """
     return get_storage_class(storage_class)(**kwargs)
+
+
+class AzureStorageExtended(AzureStorage):
+    """
+    A wrapper around the django-stores implementation for Azure blob storage
+    so that it is fully comptaible. The version in the library's repository
+    is out of date
+    """
+
+    def __init__(self, container=None, url_expiry_secs=None, *args, **kwargs):
+        """
+        Override base implementation so that we can accept a container
+        parameter and an expiration on urls
+        """
+        super(AzureStorage, self).__init__(*args, **kwargs)
+        self._connection = None
+        self._service = None
+        self.url_expiry_secs = url_expiry_secs
+
+        if container:
+            self.azure_container = container
+
+    def listdir(self, path):
+        """
+        The base implementation does not have a definition for this method
+        which Open edX requires
+        """
+        if not path:
+            path = None
+
+        blobs = self.list_all(path=path)
+
+        results = []
+        for blob_name in blobs:
+            if path:
+                blob_name = blob_name.replace(path, '')
+            results.append(blob_name)
+
+        return ((), results)
