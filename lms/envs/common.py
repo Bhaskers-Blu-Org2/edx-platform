@@ -1082,7 +1082,7 @@ derived('LOCALE_PATHS')
 MESSAGE_STORAGE = 'django.contrib.messages.storage.session.SessionStorage'
 
 # Guidelines for translators
-TRANSLATORS_GUIDE = 'https://edx.readthedocs.org/projects/edx-developer-guide/en/latest/conventions/internationalization/i18n_translators_guide.html'  # pylint: disable=line-too-long
+TRANSLATORS_GUIDE = 'http://edx.readthedocs.org/projects/edx-developer-guide/en/latest/conventions/internationalization/i18n_translators_guide.html'  # pylint: disable=line-too-long
 
 #################################### GITHUB #######################################
 # gitreload is used in LMS-workflow to pull content from github
@@ -1305,6 +1305,7 @@ MIDDLEWARE_CLASSES = [
     'openedx.features.enterprise_support.middleware.EnterpriseMiddleware',
 
     'edx_rest_framework_extensions.middleware.EnsureJWTAuthSettingsMiddleware',
+    'openedx.core.djangoapps.site_configuration.middleware.LoginRequiredMiddleware',
 
     # This must be last
     'openedx.core.djangoapps.site_configuration.middleware.SessionCookieDomainOverrideMiddleware',
@@ -1873,7 +1874,7 @@ WEBPACK_CONFIG_PATH = 'webpack.prod.config.js'
 
 # We don't enable Django Debug Toolbar universally, but whenever we do, we want
 # to avoid patching settings.  Patched settings can cause circular import
-# problems: https://django-debug-toolbar.readthedocs.org/en/1.0/installation.html#explicit-setup
+# problems: http://django-debug-toolbar.readthedocs.org/en/1.0/installation.html#explicit-setup
 
 DEBUG_TOOLBAR_PATCH_SETTINGS = False
 
@@ -3314,8 +3315,8 @@ ENABLE_COMPREHENSIVE_THEMING = True
 # API access management
 API_ACCESS_MANAGER_EMAIL = 'api-access@example.com'
 API_ACCESS_FROM_EMAIL = 'api-requests@example.com'
-API_DOCUMENTATION_URL = 'https://course-catalog-api-guide.readthedocs.io/en/latest/'
-AUTH_DOCUMENTATION_URL = 'https://course-catalog-api-guide.readthedocs.io/en/latest/authentication/index.html'
+API_DOCUMENTATION_URL = 'http://course-catalog-api-guide.readthedocs.io/en/latest/'
+AUTH_DOCUMENTATION_URL = 'http://course-catalog-api-guide.readthedocs.io/en/latest/authentication/index.html'
 
 # Affiliate cookie tracking
 AFFILIATE_COOKIE_NAME = 'affiliate_id'
@@ -3333,8 +3334,8 @@ HELP_TOKENS_INI_FILE = REPO_ROOT / "lms" / "envs" / "help_tokens.ini"
 HELP_TOKENS_LANGUAGE_CODE = lambda settings: settings.LANGUAGE_CODE
 HELP_TOKENS_VERSION = lambda settings: doc_version()
 HELP_TOKENS_BOOKS = {
-    'learner': 'https://edx.readthedocs.io/projects/open-edx-learner-guide',
-    'course_author': 'https://edx.readthedocs.io/projects/open-edx-building-and-running-a-course',
+    'learner': 'http://edx.readthedocs.io/projects/open-edx-learner-guide',
+    'course_author': 'http://edx.readthedocs.io/projects/open-edx-building-and-running-a-course',
 }
 derived('HELP_TOKENS_LANGUAGE_CODE', 'HELP_TOKENS_VERSION')
 
@@ -3482,3 +3483,12 @@ USER_STATE_BATCH_SIZE = 5000
 from openedx.core.djangoapps.plugins import plugin_apps, plugin_settings, constants as plugin_constants
 INSTALLED_APPS.extend(plugin_apps.get_apps(plugin_constants.ProjectType.LMS))
 plugin_settings.add_plugins(__name__, plugin_constants.ProjectType.LMS, plugin_constants.SettingsType.COMMON)
+
+# Social Django defaults to HTTP scheme when generating redirect_uri
+# It is therefore necessary to add this setting in order to support
+# changing the redirect_uri to HTTPS. Defaulting to False (default behavior)
+# and expecting client to override.
+REDIRECT_IS_HTTPS = False
+
+# this will enable certificate generation for honor mode enrollments
+ENABLE_CERTIFICATES_FOR_HONOR_MODE = False
