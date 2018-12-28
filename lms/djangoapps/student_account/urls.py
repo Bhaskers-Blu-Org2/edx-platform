@@ -6,6 +6,7 @@ from student_account import views
 urlpatterns = [
     url(r'^finish_auth$', views.finish_auth, name='finish_auth'),
     url(r'^settings$', views.account_settings, name='account_settings'),
+    url(r'^get_cookies$', views.cookies_api, name='cookies_api'),
 ]
 
 if settings.FEATURES.get('ENABLE_COMBINED_LOGIN_REGISTRATION'):
