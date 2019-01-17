@@ -130,6 +130,11 @@ urlpatterns = [
         name='accounts_retirement_queue'
     ),
     url(
+        r'^v1/accounts/retirement_cleanup/$',
+        RETIREMENT_CLEANUP,
+        name='accounts_retirement_cleanup'
+    ),
+    url(
         r'^v1/accounts/retirements_by_status_and_date/$',
         RETIREMENT_LIST_BY_STATUS_AND_DATE,
         name='accounts_retirements_by_status_and_date'
