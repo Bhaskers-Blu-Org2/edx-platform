@@ -482,7 +482,7 @@ with open(CONFIG_ROOT / CONFIG_PREFIX + "auth.json") as auth_file:
 # Override secure auth items from azure keyvault
 if ENV_TOKENS.get('GET_SECRETS_FROM_AZURE_KEYVAULT', False):
     secure_keys = ENV_TOKENS.get('LMS_SECURE_KEY_NAME', None)
-    AUTH_TOKENS = override_configs_from_keyvault(AUTH_TOKENS, request_uri, payload, key_vault_url, secure_keys, api_version)
+    AUTH_TOKENS = override_configs_from_keyvault(AUTH_TOKENS, request_uri, payload, key_vault_url, secure_keys, keyvault_api_version)
 
 
 ############### XBlock filesystem field config ##########
