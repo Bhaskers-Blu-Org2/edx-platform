@@ -81,6 +81,7 @@ from .signals import (
     USER_RETIRE_THIRD_PARTY_MAILINGS
 )
 from ..message_types import DeletionNotificationMessage
+from third_party_auth.models import UserSocialAuthMapping
 
 log = logging.getLogger(__name__)
 
@@ -384,13 +385,15 @@ class DeactivateLogoutViewV2(APIView):
     {
         "password": "example_password",
         "useremail": "user1@example.com",
+        "uid":"2078n9f30d9zdce7"
     }
 
     **POST Parameters**
 
       A POST request can include one of the following parameter.
 
-      * useremail: Optional. the email of the user being deactivated
+      * uid: Optional. the puid of the user being deactivated.
+      * useremail: Optional. the email of the user being deactivated.
       * password: Required. The current password of the user being deactivated.
 
     **POST Response Values**
@@ -428,9 +431,13 @@ class DeactivateLogoutViewV2(APIView):
             oauth_account_deletion = settings.FEATURES.get('ENABLE_OAUTH_ACCOUNT_DELETION', False)
             if oauth_account_deletion:
                 user_email = request.POST.get('useremail', False)
+                uid = request.POST.get('uid', False)
                 if user_email:
                     request.user = User.objects.get(email=user_email)
                     self._check_excessive_login_attempts(request.user)
+                elif uid:
+                    user_social_auth_mapping = UserSocialAuthMapping.objects.get(uid=uid)
+                    request.user = User.objects.get(id=user_social_auth_mapping.user_id)
                 else:
                     self._process_account_deactivation(request)
             else:
@@ -1070,7 +1077,7 @@ class AccountRetirementView(ViewSet):
         any other PII associated with this user.
         """
         username = request.data['username']
-
+             
         try:
             retirement_status = UserRetirementStatus.get_retirement_for_retirement_action(username)
             user = retirement_status.user
