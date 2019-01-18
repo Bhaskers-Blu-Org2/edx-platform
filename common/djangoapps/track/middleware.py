@@ -181,7 +181,7 @@ class TrackMiddleware(object):
         if not getattr(settings, 'ENCRYPT_SESSION_KEY_USING_MD5', true):
             disgest_mod = hashlib.sha256
 
-		key = disgest_mod(key_salt + settings.SECRET_KEY).digest()
+        key = disgest_mod(key_salt + settings.SECRET_KEY).digest()
         encrypted_session_key = hmac.new(key, msg=session_key, digestmod=disgest_mod).hexdigest()[:32]
         return encrypted_session_key
 
