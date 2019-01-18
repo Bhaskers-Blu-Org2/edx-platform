@@ -19,6 +19,10 @@ from waffle.testutils import override_switch
 from ..views import CourseDetailView, CourseListUserThrottle
 from .mixins import TEST_PASSWORD, CourseApiFactoryMixin
 
+TEST_SITE_CONFIGURATION = {
+    'RESTRICT_COURSES_API': True
+}
+
 
 class CourseApiTestViewMixin(CourseApiFactoryMixin):
     """
@@ -138,6 +142,17 @@ class CourseListViewTestCase(CourseApiTestViewMixin, SharedModuleStoreTestCase):
 
 
 @attr(shard=9)
+    @with_site_configuration(configuration=TEST_SITE_CONFIGURATION)
+    def test_as_honor_with_site_configuration(self):
+        self.setup_user(self.honor_user)
+        self.verify_response(expected_status_code=403, params={'username': self.honor_user.username})
+
+    @with_site_configuration(configuration=TEST_SITE_CONFIGURATION)
+    def test_as_honor_with_site_configuration(self):
+        self.setup_user(self.staff_user)
+        self.verify_response(params={'username': self.staff_user.username})
+
+
 class CourseListViewTestCaseMultipleCourses(CourseApiTestViewMixin, ModuleStoreTestCase):
     """
     Test responses returned from CourseListView (with tests that modify the

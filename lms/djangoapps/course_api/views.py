@@ -4,7 +4,7 @@ Course API Views
 
 import search
 from django.conf import settings
-from django.core.exceptions import ValidationError
+from django.core.exceptions import ValidationError, PermissionDenied
 from rest_framework.generics import ListAPIView, RetrieveAPIView
 from rest_framework.throttling import UserRateThrottle
 
@@ -15,6 +15,7 @@ from . import USE_RATE_LIMIT_2_FOR_COURSE_LIST_API, USE_RATE_LIMIT_10_FOR_COURSE
 from .api import course_detail, list_courses
 from .forms import CourseDetailGetForm, CourseListGetForm
 from .serializers import CourseDetailSerializer, CourseSerializer
+from openedx.core.djangoapps.site_configuration import helpers as configuration_helpers
 
 
 @view_auth_classes(is_authenticated=False)
@@ -245,9 +246,12 @@ class CourseListView(DeveloperErrorViewMixin, ListAPIView):
         """
         Return a list of courses visible to the user.
         """
+        restrict_course_api = configuration_helpers.get_value('RESTRICT_COURSES_API')
         form = CourseListGetForm(self.request.query_params, initial={'requesting_user': self.request.user})
         if not form.is_valid():
             raise ValidationError(form.errors)
+        elif restrict_course_api and not self.request.user.is_staff:
+            raise PermissionDenied()
 
         db_courses = list_courses(
             self.request,
