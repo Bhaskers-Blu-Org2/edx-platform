@@ -176,11 +176,11 @@ class TrackMiddleware(object):
         # as the original session_key.
 
         key_salt = "common.djangoapps.track" + self.__class__.__name__
-		disgest_mod = hashlib.md5
-		
-		if not getattr(settings, 'ENCRYPT_SESSION_KEY_USING_MD5', true):
-		    disgest_mod = hashlib.sha256
-		
+        disgest_mod = hashlib.md5
+
+        if not getattr(settings, 'ENCRYPT_SESSION_KEY_USING_MD5', true):
+            disgest_mod = hashlib.sha256
+
 		key = disgest_mod(key_salt + settings.SECRET_KEY).digest()
         encrypted_session_key = hmac.new(key, msg=session_key, digestmod=disgest_mod).hexdigest()[:32]
         return encrypted_session_key
