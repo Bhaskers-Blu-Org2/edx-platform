@@ -113,11 +113,14 @@ class CourseDetailView(DeveloperErrorViewMixin, RetrieveAPIView):
         Return the requested course object, if the user has appropriate
         permissions.
         """
+        restrict_course_api = configuration_helpers.get_value('RESTRICT_COURSES_API')
         requested_params = self.request.query_params.copy()
         requested_params.update({'course_key': self.kwargs['course_key_string']})
         form = CourseDetailGetForm(requested_params, initial={'requesting_user': self.request.user})
         if not form.is_valid():
             raise ValidationError(form.errors)
+        elif restrict_course_api and not self.request.user.is_staff:
+            raise PermissionDenied()
 
         return course_detail(
             self.request,
