@@ -240,6 +240,11 @@ FEATURES = {
     # migrations if you enable this; we don't create tables by default.
     'ENABLE_THIRD_PARTY_AUTH': False,
 
+    # By default edX support custom username/password for authentication.  In some use cases, the use of custom auth
+    # is not needed. This option provides a master option for continuing to use custom authentication (default) or
+    # disable custom authentication in favor of third party authentication.
+    'ENABLE_CUSTOM_AUTH': True,
+
     # Toggle to enable alternate urls for marketing links
     'ENABLE_MKTG_SITE': False,
 
@@ -398,6 +403,16 @@ FEATURES = {
 
     # Whether to display the account deletion section the account settings page
     'ENABLE_ACCOUNT_DELETION': True,
+
+    # Set this to true to make Delete requests from third party agent
+    'ENABLE_OAUTH_ACCOUNT_DELETION': True,
+  
+    # Making the display of course discovery and dashboard tabs configurable
+    'ENABLE_COURSE_DISCOVERY': True,
+    'ENABLE_DASHBOARD_TABS': True,
+
+    # Set this to True to enable Azure Media Service XBlock installed for embed video player
+    'ENABLE_AZURE_MEDIA_SERVICES_XBLOCK': False,
 }
 
 # Settings for the course reviews tool template and identification key, set either to None to disable course reviews
@@ -513,6 +528,7 @@ OAUTH2_PROVIDER = {
     'SCOPES': dict(OAUTH2_DEFAULT_SCOPES, **{
         'grades:read': _('Retrieve your grades for your enrolled courses'),
         'certificates:read': _('Retrieve your course certificates'),
+        'retire_user:write': _('Retire the user account'),
     }),
     'DEFAULT_SCOPES': OAUTH2_DEFAULT_SCOPES,
     'REQUEST_APPROVAL_PROMPT': 'auto_even_if_expired',
@@ -1078,7 +1094,7 @@ derived('LOCALE_PATHS')
 MESSAGE_STORAGE = 'django.contrib.messages.storage.session.SessionStorage'
 
 # Guidelines for translators
-TRANSLATORS_GUIDE = 'https://edx.readthedocs.org/projects/edx-developer-guide/en/latest/conventions/internationalization/i18n_translators_guide.html'  # pylint: disable=line-too-long
+TRANSLATORS_GUIDE = 'http://edx.readthedocs.org/projects/edx-developer-guide/en/latest/conventions/internationalization/i18n_translators_guide.html'  # pylint: disable=line-too-long
 
 #################################### GITHUB #######################################
 # gitreload is used in LMS-workflow to pull content from github
@@ -1301,6 +1317,7 @@ MIDDLEWARE_CLASSES = [
     'openedx.features.enterprise_support.middleware.EnterpriseMiddleware',
 
     'edx_rest_framework_extensions.middleware.EnsureJWTAuthSettingsMiddleware',
+    'openedx.core.djangoapps.site_configuration.middleware.LoginRequiredMiddleware',
 
     # This must be last
     'openedx.core.djangoapps.site_configuration.middleware.SessionCookieDomainOverrideMiddleware',
@@ -1869,7 +1886,7 @@ WEBPACK_CONFIG_PATH = 'webpack.prod.config.js'
 
 # We don't enable Django Debug Toolbar universally, but whenever we do, we want
 # to avoid patching settings.  Patched settings can cause circular import
-# problems: https://django-debug-toolbar.readthedocs.org/en/1.0/installation.html#explicit-setup
+# problems: http://django-debug-toolbar.readthedocs.org/en/1.0/installation.html#explicit-setup
 
 DEBUG_TOOLBAR_PATCH_SETTINGS = False
 
@@ -3310,8 +3327,8 @@ ENABLE_COMPREHENSIVE_THEMING = True
 # API access management
 API_ACCESS_MANAGER_EMAIL = 'api-access@example.com'
 API_ACCESS_FROM_EMAIL = 'api-requests@example.com'
-API_DOCUMENTATION_URL = 'https://course-catalog-api-guide.readthedocs.io/en/latest/'
-AUTH_DOCUMENTATION_URL = 'https://course-catalog-api-guide.readthedocs.io/en/latest/authentication/index.html'
+API_DOCUMENTATION_URL = 'http://course-catalog-api-guide.readthedocs.io/en/latest/'
+AUTH_DOCUMENTATION_URL = 'http://course-catalog-api-guide.readthedocs.io/en/latest/authentication/index.html'
 
 # Affiliate cookie tracking
 AFFILIATE_COOKIE_NAME = 'affiliate_id'
@@ -3329,8 +3346,8 @@ HELP_TOKENS_INI_FILE = REPO_ROOT / "lms" / "envs" / "help_tokens.ini"
 HELP_TOKENS_LANGUAGE_CODE = lambda settings: settings.LANGUAGE_CODE
 HELP_TOKENS_VERSION = lambda settings: doc_version()
 HELP_TOKENS_BOOKS = {
-    'learner': 'https://edx.readthedocs.io/projects/open-edx-learner-guide',
-    'course_author': 'https://edx.readthedocs.io/projects/open-edx-building-and-running-a-course',
+    'learner': 'http://edx.readthedocs.io/projects/open-edx-learner-guide',
+    'course_author': 'http://edx.readthedocs.io/projects/open-edx-building-and-running-a-course',
 }
 derived('HELP_TOKENS_LANGUAGE_CODE', 'HELP_TOKENS_VERSION')
 
@@ -3484,3 +3501,6 @@ plugin_settings.add_plugins(__name__, plugin_constants.ProjectType.LMS, plugin_c
 # changing the redirect_uri to HTTPS. Defaulting to False (default behavior)
 # and expecting client to override.
 REDIRECT_IS_HTTPS = False
+
+# this will enable certificate generation for honor mode enrollments
+ENABLE_CERTIFICATES_FOR_HONOR_MODE = False
