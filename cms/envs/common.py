@@ -1341,7 +1341,6 @@ ADVANCED_PROBLEM_TYPES = [
     }
 ]
 
-
 # Files and Uploads type filter values
 
 FILES_AND_UPLOAD_TYPE_FILTERS = {
@@ -1441,6 +1440,14 @@ PROCTORING_SETTINGS = {}
 DATABASE_ROUTERS = [
     'openedx.core.lib.django_courseware_routers.StudentModuleHistoryExtendedRouter',
 ]
+
+
+############################ ORA 2 ############################################
+
+# By default, don't use a file prefix
+ORA2_FILE_PREFIX = None
+ORA2_FILEUPLOAD_BACKEND = None
+ORA2_FILEUPLOAD  = None
 
 ############################ OAUTH2 Provider ###################################
 
