@@ -304,6 +304,14 @@ if FEATURES.get('AUTH_USE_CAS'):
             CAS_ATTRIBUTE_CALLBACK['function']
         )
 
+##### ORA2 ######
+# Prefix for uploads of example-based assessment AI classifiers
+# This can be used to separate uploads for different environments
+# within the same S3 bucket.
+ORA2_FILE_PREFIX = ENV_TOKENS.get("ORA2_FILE_PREFIX", ORA2_FILE_PREFIX)
+ORA2_FILEUPLOAD_BACKEND = ENV_TOKENS.get("ORA2_FILEUPLOAD_BACKEND", ORA2_FILEUPLOAD_BACKEND)
+ORA2_FILEUPLOAD = ENV_TOKENS.get("ORA2_FILEUPLOAD", ORA2_FILEUPLOAD)
+
 # Specific setting for the File Upload Service to store media in a bucket.
 FILE_UPLOAD_STORAGE_BUCKET_NAME = ENV_TOKENS.get('FILE_UPLOAD_STORAGE_BUCKET_NAME', FILE_UPLOAD_STORAGE_BUCKET_NAME)
 FILE_UPLOAD_STORAGE_PREFIX = ENV_TOKENS.get('FILE_UPLOAD_STORAGE_PREFIX', FILE_UPLOAD_STORAGE_PREFIX)
