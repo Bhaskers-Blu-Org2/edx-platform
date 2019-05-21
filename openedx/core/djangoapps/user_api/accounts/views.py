@@ -511,7 +511,6 @@ class AccountRetireMailingsView(APIView):
             return Response(text_type(exc), status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
-
 class DeactivateLogoutViewV2(APIView):
     """
     POST /api/user/v1/accounts/deactivate_logoutv2/
@@ -552,6 +551,7 @@ class DeactivateLogoutViewV2(APIView):
     authentication_classes = (SessionAuthentication, JwtAuthentication, )
     permission_classes = (JwtHasScope, permissions.IsAuthenticated)
     required_scopes = ['retire_user:write']
+
     def post(self, request):
         """
         POST /api/user/v1/accounts/deactivate_logoutv2/
@@ -580,9 +580,7 @@ class DeactivateLogoutViewV2(APIView):
                
             with transaction.atomic():
                 UserRetirementStatus.create_retirement(request.user)
-                # Unlink LMS social auth accounts
-                UserSocialAuth.objects.filter(user_id=request.user.id).delete()
-                UserSocialAuthMapping.objects.filter(user_id=request.user.id).delete()
+
                 # Change LMS password & email
                 user_email = request.user.email
                 request.user.email = get_retired_email_by_email(request.user.email)
@@ -1131,6 +1129,11 @@ class AccountRetirementStatusView(ViewSet):
             # Sanity check that they're all valid usernames in the right state
             if len(usernames) != len(retirements):
                 raise UserRetirementStatus.DoesNotExist('Not all usernames exist in the COMPLETE state.')
+
+            # Unlink LMS social auth accounts
+            user_ids = [retirement.user.id for retirement in retirements]
+            UserSocialAuth.objects.filter(user_id__in=user_ids)
+            UserSocialAuthMapping.objects.filter(user_id__in=user_ids)
 
             retirements.delete()
             return Response(status=status.HTTP_204_NO_CONTENT)
