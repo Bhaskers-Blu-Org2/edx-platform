@@ -1132,8 +1132,8 @@ class AccountRetirementStatusView(ViewSet):
 
             # Unlink LMS social auth accounts
             user_ids = [retirement.user.id for retirement in retirements]
-            UserSocialAuth.objects.filter(user_id__in=user_ids)
-            UserSocialAuthMapping.objects.filter(user_id__in=user_ids)
+            UserSocialAuth.objects.filter(user_id__in=user_ids).delete()
+            UserSocialAuthMapping.objects.filter(user_id__in=user_ids).delete()
 
             retirements.delete()
             return Response(status=status.HTTP_204_NO_CONTENT)
