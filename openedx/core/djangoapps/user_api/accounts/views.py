@@ -581,6 +581,9 @@ class DeactivateLogoutViewV2(APIView):
             with transaction.atomic():
                 UserRetirementStatus.create_retirement(request.user)
 
+                # Unlink LMS social auth accounts
+                UserSocialAuth.objects.filter(user_id=request.user.id).delete()
+
                 # Change LMS password & email
                 user_email = request.user.email
                 request.user.email = get_retired_email_by_email(request.user.email)
@@ -1130,9 +1133,8 @@ class AccountRetirementStatusView(ViewSet):
             if len(usernames) != len(retirements):
                 raise UserRetirementStatus.DoesNotExist('Not all usernames exist in the COMPLETE state.')
 
-            # Unlink LMS social auth accounts
+            # Unlink LMS social auth mapping
             user_ids = [retirement.user.id for retirement in retirements]
-            UserSocialAuth.objects.filter(user_id__in=user_ids).delete()
             UserSocialAuthMapping.objects.filter(user_id__in=user_ids).delete()
 
             retirements.delete()
